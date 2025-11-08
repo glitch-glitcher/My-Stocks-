@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Companies & Fibonacci Lines</title>
+<style>
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: #111;
+    color: #fff;
+    margin: 20px;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  #chartContainer {
+    width: 100%;
+    height: 700px;
+  }
+  nav {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  nav button {
+    background: #222;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.3s;
+  }
+  nav button:hover {
+    background: #333;
+  }
+</style>
+</head>
+<body>
+
+<h1>Companies & Fibonacci Lines</h1>
+
+<nav>
+  <button onclick="loadCategory('tech')">Technology & Software</button>
+  <button onclick="loadCategory('finance')">Finance & Insurance</button>
+  <button onclick="loadCategory('retail')">Consumer & Retail</button>
+  <button onclick="loadCategory('industry')">Industry & Transport</button>
+  <button onclick="loadCategory('energy')">Energy & Raw Materials</button>
+  <button onclick="loadCategory('health')">Health & Pharma</button>
+  <button onclick="loadCategory('realestate')">Real Estate & Utilities</button>
+  <button onclick="loadCategory('international')">International & Miscellaneous</button>
+</nav>
+
+<div id="chartContainer"></div>
+
+<!-- Load Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Chart.js Plugin for Lines -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
+<script>
+// Sample data for categories
+const categories = {
+  tech: ["AAPL", "GOOGL", "MSFT", "META", "NVDA", "AMD", "INTC", "IBM", "ORCL", "CRM", "SAP", "ADSK", "NOW", "SNOW", "PANW", "FTNT", "CRWD", "ZS", "DDOG", "MDB", "TEAM", "DOCU", "SHOP", "SQ", "PYPL", "ABNB", "UBER", "LYFT", "DASH", "TOST", "ZM", "ETSY", "TWLO", "OKTA", "NET", "PLTR", "RBLX", "SPOT", "AKAM", "HPE", "HPQ", "DELL", "TXN", "MU", "LRCX", "KLAC", "ASML", "TSM", "AMAT", "NXPI", "AVGO", "QRVO", "QCOM", "ADI", "SWKS", "MCHP", "STM", "WDC", "WDAY", "CDNS", "SNPS", "ANSS", "INTU", "GLOB", "EPAM", "DOCS", "DUOL", "COUR", "HUBS", "VEEV", "PTC", "FSLR", "ENPH", "RUN"],
+  finance: ["JPM", "BAC", "C", "WFC", "GS", "MS", "SCHW", "BK", "USB", "PNC", "COF", "AXP", "DFS", "BLK", "BX", "KKR", "CG", "APO", "TROW", "IVZ", "AFL", "MET", "PRU", "AIG", "TRV", "CB", "MMC", "AJG", "SPGI", "MCO", "ICE", "CME", "MSCI", "FDS", "NDAQ", "BR", "PAYC", "GPN", "FIS", "FISV", "SOFI", "LC", "AFRM", "HOOD"],
+  retail: ["AMZN", "COST", "WMT", "TGT", "HD", "LOW", "BBY", "M", "KSS", "DG", "DLTR", "TJX", "ROST", "ULTA", "NKE", "ADDYY", "LULU", "UAA", "CROX", "PVH", "RL", "GPS", "AEO", "DECK", "HBI", "SKX", "ELF"],
+  industry: ["TSLA", "F", "GM", "TM", "HMC", "RIVN", "NKLA", "LCID", "PCAR", "CAT", "DE", "CMI", "ETN", "EMR", "MMM", "HON", "GE", "LMT", "NOC", "RTX", "BA", "GD"],
+  energy: ["XOM", "CVX", "COP", "OXY", "SLB", "HAL", "BKR", "DVN", "MRO", "APA", "EOG", "PXD", "BP", "SHEL", "TOT", "ENB"],
+  health: ["JNJ", "PFE", "MRK", "BMY", "AMGN", "GILD", "ABBV", "LLY", "REGN", "BIIB", "VRTX", "ZTS", "MRNA", "NVCR", "ILMN", "TMO"],
+  realestate: ["VNO", "DLR", "EQIX", "CPT", "AMT", "CCI", "SBAC", "EQR", "AVB"],
+  international: ["BABA", "BIDU", "JD", "PDD", "TCEHY", "INFY", "WIT", "RELIANCE", "NIO", "XPENG", "BYDDF", "SONY", "TMUS", "VZ"]
+};
+
+// Function to load selected category
+let chartInstance = null;
+function loadCategory(categoryKey) {
+  const firms = categories[categoryKey];
+  if (!firms) return;
+
+  // Create labels
+  const labels = firms;
+
+  // Generate random values (e.g., between 50-300)
+  const dataValues = firms.map(() => Math.floor(50 + Math.random() * 250));
+
+  // Fibonacci ratios
+  const fibRatios = [0.382, 0.618, 1, 1.618, 2.618];
+
+  // Max value
+  const maxVal = Math.max(...dataValues);
+  const fibLines = fibRatios.map(r => maxVal * r);
+
+  // Create canvas
+  const container = document.getElementById('chartContainer');
+  container.innerHTML = ''; // Reset
+  const canvas = document.createElement('canvas');
+  container.appendChild(canvas);
+
+  // Destroy previous chart if exists
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Company Values',
+        data: dataValues,
+        fill: false,
+        borderColor: 'white',
+        backgroundColor: 'white',
+        tension: 0.4,
+        pointRadius: 2,
+        pointHoverRadius: 4,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: 'Company Values with Fibonacci Lines', color: 'white', font: { size: 20 } },
+        // No need for annotation plugin here as we are using custom afterDraw
+      },
+      scales: {
+        x: {
+          ticks: { color: 'white', font: { size: 10 } },
+          grid: { color: 'rgba(255,255,255,0.1)' }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: { color: 'white' },
+          grid: { color: 'rgba(255,255,255,0.1)' }
+        }
+      }
+    },
+    plugins: [{
+      id: 'fibLines',
+      afterDraw: (chart) => {
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        fibLines.forEach(line => {
+          const y = chart.scales.y.getPixelForValue(line);
+          ctx.beginPath();
+          ctx.moveTo(chart.chartArea.left, y);
+          ctx.lineTo(chart.chartArea.right, y);
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+// Load default category
+loadCategory('tech');
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fang's Stocks!
+</title>
+<!-- Google Fonts für schöne Schriftarten -->
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap" rel="stylesheet" />
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    font-family: 'Open Sans', sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Hintergrund mit Unschärfe nur auf das Bild anwenden */
+  .background-img {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://image2url.com/images/1762614084901-fddcde37-e66c-4aae-9c63-058d5ebf04cf.jpg'); /* Dein Bild */
+    background-size: cover;
+    background-position: center;
+    filter: blur(4px);
+    z-index: -1;
+  }
+
+  /* Overlay für den Text, damit alles klar bleibt */
+  .overlay {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Stelle sicher, dass alle Texte in Weiß sind */
+  .container {
+    text-align: center;
+    padding: 40px;
+    max-width: 900px;
+    color: #ffffff !important; /* Weiße Schrift, wichtig! */
+  }
+
+  h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff; /* Leucht-Effekt */
+  }
+
+  p {
+    font-size: 1.2em;
+    margin-bottom: 40px;
+  }
+
+  /* Knopf im futuristischen Stil */
+  .btn {
+    padding: 15px 40px;
+    font-size: 1.4em;
+    border: none;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #000;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 0 15px #ffffff, inset 0 0 10px #ffffff;
+    transition: all 0.3s ease;
+    margin: 10px; /* optional, falls du mehrere Buttons hast */
+  }
+
+  .btn:hover {
+    background: #ffffff;
+    box-shadow: 0 0 25px #ffffff, inset 0 0 15px #ffffff;
+  }
+</style>
+</head>
+<body>
+  <div class="background-img"></div> <!-- Dein Hintergrundbild -->
+  <div class="overlay">
+    <div class="container">
+      <h1>Stocks!</h1> <!-- Dein Titel -->
+      <p>Click on “Start” to see over 400 stocks!<br></p> <!-- Dein Text -->
+    
+      <!-- Nur noch der "Start"-Button -->
+      <button class="btn" onclick="window.location.href='index.html'">Start</button>
+      
+    </div>
+  </div>
+</body>
+</html>
